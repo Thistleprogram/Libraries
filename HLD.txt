@@ -1,0 +1,127 @@
+class HLD {
+#define HLD_SIZ 400010
+#define H pair<int, int>
+#define pb emplace_back
+#define fs first
+#define sc second
+    using F = function<void(int&, int, int)>;
+    using T = function<int(int, int)>;
+    int n, st, zer, zer2, idx;
+    bool mde;
+    int siz[HLD_SIZ];
+    vector<int>e[HLD_SIZ];
+    vector<pair<int, pair<int, int>>>f;
+    int in[HLD_SIZ], out[HLD_SIZ], rev[HLD_SIZ];
+    int head[HLD_SIZ], prt[HLD_SIZ], dept[HLD_SIZ];
+    Segtree seg;
+    F upd; T qur;
+public:
+    //for update, for query, mode(0:vertex, 1:edge)
+    void init(int size, F update, T query, int zero, int zero2, bool mode) {
+        n = size, zero = zer, zer2 = zero2;
+        upd = update, qur = query;
+        mde = mode;
+        for (int i = 0; i <= n; i++) siz[i] = 0, prt[i] = -1, head[i] = -1;
+    }
+    void add_edge(int u, int v, int r) {
+        add_edge(u, v);
+        f.pb(make_pair(u, make_pair(v, r)));
+    }
+    void add_edge(int u, int v) {
+        e[u].pb(v);
+        e[v].pb(u);
+    }
+    void build(int root = 0) {
+        st = root;
+        dept[st] = 0;
+        for (auto u : e[st]) normalize(u, st, 1);
+        for (int i = 0; i <= n; i++) if (i != st && !(~prt[i])) {
+            dept[i] = 0;
+            for (auto u : e[i]) normalize(u, i, 1);
+        }
+        for (int i = 0; i <= n; i++) if (!(~prt[i])) dfs1(i);
+        for (int i = 0; i <= n; i++) if (!(~prt[i])) {
+            head[i] = i; dfs2(i);
+        }
+        seg.init(idx, upd, qur, zer, zer2);
+        if (f.size()) {
+            vector<int>v(idx, zer2);
+            for (auto g : f) {
+                v[max(in[g.fs], in[g.sc.fs])] = g.sc.sc;
+            }
+            seg.build(v);
+        }
+    }
+    void update(int a, int b, int x) {
+        while (head[a] != head[b]) {
+            if (in[a] > in[b]) swap(a, b);
+            seg.update(in[head[b]], in[b] + 1, x);
+            b = prt[head[b]];
+        }
+        if (in[a] > in[b]) swap(a, b);
+        seg.update(in[a] + mde, in[b] + 1, x);
+    }
+    int query(int a, int b) {
+        int ret = zer2;
+        while (head[a] != head[b]) {
+            if (in[a] > in[b]) swap(a, b);
+            ret = qur(ret, seg.query(in[head[b]], in[b] + 1));
+            b = prt[head[b]];
+        }
+        if (in[a] > in[b]) swap(a, b);
+        ret = qur(ret, seg.query(in[a] + mde, in[b] + 1));
+        return ret;
+    }
+    int lca(int a, int b) {
+        while (1) {
+            if (in[a] > in[b]) swap(a, b);
+            if (head[a] == head[b]) return a;
+            b = prt[head[b]];
+        }
+    }
+    void subupdate(int a, int x) {
+        seg.update(in[a], out[a], x);
+    }
+    int subquery(int a) {
+        return seg.query(in[a], out[a]);
+    }
+    int par(int x, int t) {
+        while (1) {
+            if (in[x] - in[head[x]] >= t)
+                return rev[in[head[x]] + ((in[x] - in[head[x]]) - t)];
+            t -= (in[x] - in[head[x]] + 1);
+            x = prt[head[x]];
+        }
+    }
+    int operator[](const int& i) { return dept[i]; }
+private:
+    void normalize(int v, int p, int d) {
+        dept[v] = d;
+        prt[v] = p;
+        for (auto& u : e[v]) {
+            if (u == e[v].back()) break;
+            if (u == p) swap(u, e[v].back());
+            normalize(u, v, d + 1);
+        }
+        if (!e[v].empty()) e[v].pop_back();
+    }
+    void dfs1(int v) {
+        siz[v] = 1;
+        for (int& u : e[v]) {
+            dfs1(u);
+            siz[v] += siz[u];
+            if (siz[u] > siz[e[v][0]]) {
+                swap(u, e[v][0]);
+            }
+        }
+    }
+    void dfs2(int v) {
+        rev[idx] = v;
+        in[v] = idx++;
+        for (auto u : e[v]) {
+            head[u] = (u == e[v][0] ? head[v] : u);
+            dfs2(u);
+        }
+        out[v] = idx;
+    }
+};

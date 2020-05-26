@@ -1,0 +1,36 @@
+class Swag {
+#define H pair<int, int>
+#define fs first
+#define sc second
+	stack<H>u, v;
+	function<int(int, int)> F;
+	int siz;
+	void swap() {
+		u.push(H{ v.top().fs,v.top().fs });
+		v.pop();
+		while (!v.empty()) {
+			u.push(H{ v.top().fs,F(u.top().sc,v.top().fs) });
+			v.pop();
+		}
+	}
+public:
+	Swag(function<int(int, int)> F) :F(F),siz(0) {}
+	void pop() {
+		if (u.empty()) swap();
+		u.pop();
+		siz--;
+	}
+	void push(const int num) {
+		if (v.empty()) v.push(H{ num,num });
+		else v.push(H{ num,F(num,v.top().sc) });
+		siz++;
+	}
+	int query() {
+		if (u.empty()) swap();
+		if (v.empty()) return u.top().sc;
+		return F(u.top().sc, v.top().sc);
+	}
+	int front() { return u.top().fs; }
+	int size() { return siz; }
+	bool empty() { return u.empty() && v.empty(); }
+};

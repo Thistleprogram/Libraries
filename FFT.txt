@@ -1,0 +1,72 @@
+class FFT {
+	struct Comp {
+		ld real, img;
+		Comp(ld a, ld b) :real(a), img(b) {}
+		Comp() :real(0), img(0) {}
+		Comp operator+(Comp b) {
+			return Comp(real + b.real, img + b.img);
+		}
+		Comp operator-(Comp b) {
+			return Comp(real - b.real, img - b.img);
+		}
+		Comp operator*(Comp b) {
+			return Comp(real * b.real - img * b.img, real * b.img + img * b.real);
+		}
+		void operator+=(Comp b) {
+			real += b.real, img += b.img;
+		}
+		void operator-=(Comp b) {
+			real -= b.real, img -= b.img;
+		}
+		void operator*=(Comp b) {
+			Comp c = Comp(real * b.real - img * b.img, real * b.img + img * b.real);
+			real = c.real; img = c.img;
+		}
+	};
+	const ld PI = acos(-1);
+	vector<Comp>dft(vector<Comp>A, int n, int sgn = 1) {
+		if (n == 1) return A;
+		vector<Comp>f0, f1;
+		for (int i = 0; i < (n / 2); i++) {
+			f0.push_back(A[i * 2 + 0]);
+			f1.push_back(A[i * 2 + 1]);
+		}
+		f0 = dft(f0, n / 2, sgn), f1 = dft(f1, n / 2, sgn);
+		Comp zeta = Comp(cos(2.0 * PI / n), sin(2.0 * PI / n) * sgn);
+		Comp pow_zeta(1, 0);
+		for (int i = 0; i < n; i++) {
+			A[i] = f0[i % (n / 2)] + pow_zeta * f1[i % (n / 2)];
+			pow_zeta *= zeta;
+		}
+		return A;
+	}
+	vec<Comp>inv_dft(vector<Comp>A, int n) {
+		auto ret = dft(A, n, -1);
+		for (int i = 0; i < n; i++) {
+			ret[i].real /= n;
+			ret[i].img /= n;
+		}
+		return ret;
+	}
+public:
+	vector<int>multiply(vector<int>& a, vector<int>& b) {
+		int n = 1;
+		vector<Comp>x, y;
+		for (int i = 0; i < a.size(); i++) x.push_back(Comp(a[i], 0));
+		for (int i = 0; i < b.size(); i++) y.push_back(Comp(b[i], 0));
+		while (n < (a.size() + b.size() + 1)) n *= 2;
+		vector<Comp>ret;
+		x.resize(n); y.resize(n);
+		x = dft(x, n, 1);
+		y = dft(y, n, 1);
+		for (int i = 0; i < n; i++) {
+			ret.push_back(x[i] * y[i]);
+		}
+		ret = inv_dft(ret, n);
+		vec<int>c;
+		for (int i = 0; i < a.size() + b.size(); i++) {
+			c.push_back(round(ret[i].real));
+		}
+		return c;
+	}
+};

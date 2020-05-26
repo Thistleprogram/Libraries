@@ -1,0 +1,102 @@
+auto RUQ = [](int& num, int x, int width) {num = x; };
+auto RAQ = [](int& num, int x, int width) {num += x; };
+auto RCMXQ = [](int& num, int x, int width) {num = max(num, x); };
+auto RCMNQ = [](int& num, int x, int width) {num = min(num, x); };
+auto RASQ = [](int& num, int x, int width) {num += (x * width); };
+auto RUSQ = [](int& num, int x, int width) {num = (x * width); };
+auto RSQ = [](int x, int y)->int {return x + y; };
+auto RMXQ = [](int x, int y)->int {return max(x, y); };
+auto RMNQ = [](int x, int y)->int {return min(x, y); };
+class Segtree {
+#define SEG_SIZE 500000
+    using F = function<void(int&, int, int)>;
+    using T = function<int(int, int)>;
+    int siz, rr, zer, zer2;
+    int dat[SEG_SIZE], lazy[SEG_SIZE];
+    bool updated[SEG_SIZE];
+    F upd; T qur;
+public:
+    //for update, for query
+    void init(int size, F update, T query, int zero, int zero2) {
+        siz = size, upd = update, qur = query, zer = zero2, zer2 = zero;
+        rr = 1; while (rr < size) rr *= 2;
+        for (int i = 0; i < SEG_SIZE; i++) dat[i] = zer, lazy[i] = zer2, updated[i] = 0;
+    }
+    void rmnq(int n) { init(n, RUQ, RMNQ, 0, inf); }
+    void rmxq(int n) { init(n, RUQ, RMXQ, 0, -inf); }
+    template<class Iterator>
+    void build(const Iterator st, const Iterator ed) {
+        Iterator it = st; int cur = rr - 1;
+        while (it != ed) dat[cur++] = (*it++);
+        for (int i = rr - 2; i >= 0; i--)
+            dat[i] = qur(dat[i * 2 + 1], dat[i * 2 + 2]);
+    }
+    void build(vector<int>v) {
+        for (int i = 0; i < min((int)v.size(), siz); i++)
+            dat[i + rr - 1] = v[i];
+        for (int i = rr - 2; i >= 0; i--)
+            dat[i] = qur(dat[i * 2 + 1], dat[i * 2 + 2]);
+    }
+    void update(int a, int b, int x) {
+        update(0, a, b, 0, rr, x);
+    }
+    int query(int a, int b) {
+        return query(0, a, b, 0, rr);
+    }
+    int lower_bound(int a, int b, function<bool(int)>comp) {
+        return lower_bound(0, a, b, 0, rr, comp);
+    }
+    int upper_bound(int a, int b, function<bool(int)>comp) {
+        return upper_bound(0, a, b, 0, rr, comp);
+    }
+    int operator[](const int i) {
+        return query(i, i + 1);
+    }
+private:
+    void eval(int i, int l, int r) {
+        if (!updated[i]) return;
+        if (r - l > 1) {
+            upd(lazy[i * 2 + 1], lazy[i], 1);
+            upd(lazy[i * 2 + 2], lazy[i], 1);
+            updated[i * 2 + 1] = updated[i * 2 + 2] = 1;
+        }
+        upd(dat[i], lazy[i], min(r, siz) - l);
+        lazy[i] = zer2;
+        updated[i] = 0;
+    }
+    void update(int i, int a, int b, int l, int r, int x) {
+        eval(i, l, r);
+        if (b <= l || r <= a) return;
+        if (a <= l && r <= b) {
+            upd(lazy[i], x, 1); updated[i] = 1;
+            eval(i, l, r);
+            return;
+        }
+        update(i * 2 + 1, a, b, l, (l + r) / 2, x);
+        update(i * 2 + 2, a, b, (l + r) / 2, r, x);
+        dat[i] = qur(dat[i * 2 + 1], dat[i * 2 + 2]);
+    }
+    int query(int i, int a, int b, int l, int r) {
+        eval(i, l, r);
+        if (b <= l || r <= a) return zer;
+        if (a <= l && r <= b) return dat[i];
+        return qur(query(i * 2 + 1, a, b, l, (l + r) / 2),
+            query(i * 2 + 2, a, b, (l + r) / 2, r));
+    }
+    int lower_bound(int i, int a, int b, int l, int r, function<bool(int)>comp) {
+        eval(i, l, r);
+        if (b <= l || r <= a || !comp(dat[i])) return siz;
+        if (r - l == 1) return l;
+        int tmp = lower_bound(i * 2 + 1, a, b, l, (l + r) / 2, comp);
+        if (tmp < siz) return tmp;
+        return lower_bound(i * 2 + 2, a, b, (l + r) / 2, r, comp);
+    }
+    int upper_bound(int i, int a, int b, int l, int r, function<bool(int)>comp) {
+        eval(i, l, r);
+        if (b <= l || r <= a || !comp(dat[i])) return 0;
+        if (r - l == 1) return r;
+        int tmp = upper_bound(i * 2 + 2, a, b, (l + r) / 2, r, comp);
+        if (tmp > 0) return tmp;
+        return upper_bound(i * 2 + 1, a, b, l, (l + r) / 2, comp);
+    }
+};

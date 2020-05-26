@@ -1,0 +1,37 @@
+class Dijkstra {
+#define H pair<int, int>
+#define fs first
+#define sc second
+#define int long long
+#define rep(i,n) for(int (i) = 0 ; (i) < (n) ; (i)++)
+	const int inf = 3 * 1e18;
+	int n;
+	int a[MXN];
+	vec<H>(*e)[MXN];
+public:
+	Dijkstra() {}
+	void init(int size, vector<H>(&f)[MXN]) {
+		n = size;
+		e = &f;
+	}//頂点数と辺を与える
+	int dist(int s, int r = 0) {
+		rep(i, n + 1) a[i] = inf;
+		a[s] = 0;
+		priority_queue<H, vector<H>, greater<H>>p;
+		p.push(H{ 0,s });
+		while (!p.empty()) {
+			H t = p.top(); p.pop();
+			if (t.fs != a[t.sc]) continue;
+			for (auto g : (*e)[t.sc]) {
+				if (a[g.fs] > a[t.sc] + g.sc) {
+					a[g.fs] = a[t.sc] + g.sc;
+					p.push(H{ a[g.fs],g.fs });
+				}
+			}
+		}
+		return a[r];
+	}//始点と終点
+	int operator[](int k)const {
+		return a[k];
+	}
+};
