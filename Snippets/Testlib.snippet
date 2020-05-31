@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>Testlib</Title>
+      <Shortcut>Testlib</Shortcut>
+    </Header>
+    <Snippet>
+      <Code Language="cpp">
+        <![CDATA[#include"testlib.h"
+#include<iostream>
+#include<string>
+#include<cmath>
+#include<map>
+#include<set>
+#include<vector>
+#include<random>
+#include<algorithm>
+#include<cstdio>
+#include<climits>
+#include<fstream>
+#include<time.h>
+#include<cassert>
+using ll = long long;
+using ld = long double;
+#define rn inf.readChar('\n')
+#define rs inf.readSpace()
+#define ri inf.readInt()
+#define rt inf.readToken()
+#define rng(i,a,b) for(int i =(a);i<(b);i++)
+#define H pair<int, int>
+#define fs first
+#define sc second
+using namespace std;
+
+signed main() {
+    for (int i = 1; i <= 17; i++) {
+        string I;
+        I = "test_out\\hand" + to_string(i) + ".txt";
+        if (i >= 3)I = "test_out\\random" + to_string(i - 2) + ".txt";
+        FILE* in = freopen(I.c_str(), "r", stdin);
+        registerValidation();
+        ri; rn;
+        inf.readEof();
+    }
+}]]>
+      </Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

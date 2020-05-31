@@ -1,0 +1,39 @@
+class WeightedUnionFind {
+	static constexpr int SIZE = 500005;
+	int par[SIZE], chsiz[SIZE], diffe[SIZE];
+	int size;
+public:
+	void init(int n) {
+		size = n;
+		for (int i = 0; i <= size; i++) {
+			par[i] = i, chsiz[i] = 1, diffe[i] = 0;
+		}
+	}
+	int root(int x) {
+		if (par[x] == x) return x;
+		int r = root(par[x]);
+		diffe[x] += diffe[par[x]];
+		return par[x] = r;
+	}
+	int weight(int x) {
+		root(x); return diffe[x];
+	}
+	bool same(int x, int y) {
+		return root(x) == root(y);
+	}
+	void unite(int x, int y, int w = 0) {
+		w += weight(x); w -= weight(y);
+		x = root(x); y = root(y);
+		if (x == y) return;
+		if (chsiz[x] < chsiz[y]) swap(x, y), w = -w;
+		chsiz[x] += chsiz[y];
+		par[y] = x;
+		diffe[y] = w;
+	}
+	int diff(int x, int y) {
+		return weight(y) - weight(x);
+	}
+	pair<int, int>operator[](const int x) {
+		return make_pair(root(x), chsiz[root(x)]);
+	}
+};

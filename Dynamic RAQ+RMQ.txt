@@ -1,0 +1,62 @@
+struct Node {
+	Node* left, * right;
+	int v, lazy;
+	Node() :left(nullptr), right(nullptr), v(0), lazy(0) {}
+};
+class DRMQ {
+	Node* root;
+	int size, rr, u, v;
+public:
+	void init(int n) {
+		size = n;
+		rr = 1; while (rr < size) rr <<= 1;
+		root = new Node();
+	}
+	void add(int a, int b, int x) {
+		if (a >= b) return;
+		add(root, a, b, 0, rr, x);
+	}
+	int query(int a, int b) {
+		if (a >= b) return 0;
+		return query(root, a, b, 0, rr);
+	}
+private:
+	void eval(Node*& node, int l, int r) {
+		if (r - l > 1) {
+			if (!node->left) node->left = new Node();
+			if (!node->right) node->right = new Node();
+			node->left->lazy += node->lazy;
+			node->right->lazy += node->lazy;
+		}
+		node->v += node->lazy;
+		node->lazy = 0;
+	}
+	void add(Node* node, int a, int b, int l, int r, int x) {
+		if (b <= l || r <= a) return;
+		eval(node, l, r);
+		if (a <= l && r <= b) {
+			node->lazy += x; eval(node, l, r);
+			return;
+		}
+		if (!node->left) node->left = new Node();
+		add(node->left, a, b, l, (l + r) / 2, x);
+		if (!node->right) node->right = new Node();
+		add(node->right, a, b, (l + r) / 2, r, x);
+		node->v = max((node->left ? node->left->v + node->left->lazy : 0), (node->right ? node->right->v + node->right->lazy : 0));
+	}
+	int query(Node* node, int a, int b, int l, int r) {
+		if (b <= l || r <= a) return 0;
+		if (a <= l && r <= b) return node->v + node->lazy;
+		eval(node, l, r);
+		int res = 0;
+		if (node->left) {
+			u = l; v = (l + r) / 2;
+			if (!(v <= a || b <= u)) res = max(res, query(node->left, a, b, l, (l + r) / 2));
+		}
+		if (node->right) {
+			u = (l + r) / 2; v = r;
+			if (!(v <= a || b <= u)) res = max(res, query(node->right, a, b, (l + r) / 2, r));
+		}
+		return res;
+	}
+};
