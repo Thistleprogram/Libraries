@@ -50,9 +50,10 @@ public:int v;
 	  bool operator==(const mint& r)const { return v == r.v; }
 	  bool operator!=(const mint& r)const { return v != r.v; }
 	  explicit operator bool()const { return v; }
+	  explicit operator int()const { return v; }
 	  mint comb(mint k) {
 		  if (k > * this) return mint();
-		  if (!fact[0]) combini();
+		  if (!fact[0]) combinit();
 		  if (v >= fn_) {
 			  if (k > * this - k) k = *this - k;
 			  mint tmp(1);
@@ -62,7 +63,7 @@ public:int v;
 		  else return fact[v] * comp[k.v] * comp[v - k.v];
 	  }//nCk
 	  mint comb(int k) { return comb(mint(k)); }
-	  static void combini() {
+	  static void combinit() {
 		  fact[0] = 1;
 		  for (int i = 1; i < fn_; i++) fact[i] = fact[i - 1] * mint(i);
 		  comp[fn_ - 1] = fact[fn_ - 1].inv();
