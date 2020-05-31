@@ -28,14 +28,6 @@ public:int v;
 	  mint operator-(const mint b) const { return mint(v) -= b; }
 	  mint operator*(const mint b) const { return mint(v) *= b; }
 	  mint operator/(const mint b) const { return mint(v) /= b; }
-	  mint& operator+=(const int b) { v = (v + b) % mod; return *this; }
-	  mint& operator-=(const int b) { v = (v - b) % mod + mod; return s(v); }
-	  mint& operator*=(const int b) { v = v * b % mod; return *this; }
-	  mint& operator/=(const int b) { (*this) *= mint(b).inv(); }
-	  mint operator+(const int b) const { return mint(v) += b; }
-	  mint operator-(const int b) const { return mint(v) -= b; }
-	  mint operator*(const int b) const { return mint(v) *= b; }
-	  mint operator/(const int b) const { return mint(v) /= b; }
 	  friend ostream& operator<<(ostream& os, const mint& m) {
 		  return os << m.v;
 	  }
