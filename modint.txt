@@ -1,7 +1,7 @@
 class mint {
-public:int v;
-	  mint(int v = 0) { s(v % mod); }
-	  constexpr static int mod = 1e9 + 7;
+public:long long v;
+	  mint(long long v = 0) { s(v % mod); }
+	  constexpr static int mod = 1e5;
 	  constexpr static int fn_ = 500005;
 	  static mint fact[fn_], comp[fn_];
 	  mint pow(mint x) const {
@@ -17,16 +17,16 @@ public:int v;
 		  v = vv < mod ? vv : vv - mod;
 		  return *this;
 	  }
-	  mint inv()const { return pow(mod - 2); }
-	  mint operator-()const { return mint() - *this; }
-	  mint& operator+=(const mint b) { return s(v + b.v); }
-	  mint& operator-=(const mint b) { return s(v + mod - b.v); }
-	  mint& operator*=(const mint b) { v = v * b.v % mod; return *this; }
-	  mint& operator/=(const mint b) { (*this) *= b.inv(); }
-	  mint operator+(const mint b) const { return mint(v) += b; }
-	  mint operator-(const mint b) const { return mint(v) -= b; }
-	  mint operator*(const mint b) const { return mint(v) *= b; }
-	  mint operator/(const mint b) const { return mint(v) /= b; }
+	  inline mint inv()const { return pow(mod - 2); }
+	  inline mint operator-()const { return mint() - *this; }
+	  inline mint& operator+=(const mint b) { return s(v + b.v); }
+	  inline mint& operator-=(const mint b) { return s(v + mod - b.v); }
+	  inline mint& operator*=(const mint b) { v = v * b.v % mod; return *this; }
+	  inline mint& operator/=(const mint b) { return (*this) *= b.inv(); }
+	  inline mint operator+(const mint b) const { return mint(v) += b; }
+	  inline mint operator-(const mint b) const { return mint(v) -= b; }
+	  inline mint operator*(const mint b) const { return mint(v) *= b; }
+	  inline mint operator/(const mint b) const { return mint(v) /= b; }
 	  friend ostream& operator<<(ostream& os, const mint& m) {
 		  return os << m.v;
 	  }
