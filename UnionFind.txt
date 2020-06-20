@@ -1,5 +1,4 @@
-
-class UnionFind {
+class unionfind {
 public:
 	int size = 0;
 	int pa[500000];
