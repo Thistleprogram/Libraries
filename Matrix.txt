@@ -1,72 +1,72 @@
 class Matrix {
 public:
-	int h, w;
-	int dat[300][300];
-	void init(int height, int width) {
-		h = height, w = width;
-		for (int i = 0; i < h; i++)for (int j = 0; j < w; j++)
-			dat[i][j] = 0;
-	}
-	auto operator[](int i) { return dat[i]; }
-	void operator+=(Matrix& b) {
-		for (int i = 0; i < h; i++)for (int j = 0; j < w; j++) 
-			dat[i][j] += b.dat[i][j];
-	}
-	void operator-=(Matrix& b) {
-		for (int i = 0; i < h; i++)for (int j = 0; j < w; j++) 
-			dat[i][j] -= b.dat[i][j];
-	}
-	Matrix operator+(Matrix& b) {
-		Matrix c = *this;c += b;
-		return c;
-	}
-	Matrix operator-(Matrix& b) {
-		Matrix c = *this; c -= b;
-		return c;
-	}
-	Matrix operator*(Matrix& b) {
-		Matrix c; c.init(h, b.w);
-		for (int i = 0; i < h; i++)for (int j = 0; j < w; j++)for (int k = 0; k < b.w; k++) {
-			c.dat[i][k] += dat[i][j] * b.dat[j][k];
-		}
-		return c;
-	}
-	void operator%=(int& b) {
-		for (int i = 0; i < h; i++)for (int j = 0; j < w; j++)
-			dat[i][j] %= b;
-	}
-	Matrix operator%(int& b) {
-		Matrix c = *this; c %= b;
-		return c;
-	}
-	void operator*=(int& b) {
-		for (int i = 0; i < h; i++)for (int j = 0; j < w; j++)
-			dat[i][j] *= b;
-	}
-	Matrix operator*(int& b) {
-		Matrix c = *this; c *= b;
-		return c;
-	}
-	Matrix moddot(Matrix& a, Matrix& b, int Mod = mod) {
-		Matrix c; c.init(a.h, b.w);
-		for (int i = 0; i < a.h; i++)for (int j = 0; j < a.w; j++)for (int k = 0; k < b.w; k++) {
-			(c.dat[i][k] += a.dat[i][j] * b.dat[j][k]) %= Mod;
-		}
-		return c;
-	}
-	Matrix mod_pow(int k, int Mod = mod) {
-		Matrix c, d = *this;
-		c.init(h, w);
-		for (int i = 0; i < h; i++) c[i][i] = 1;
-		while (k) {
-			if (k & 1) {
-				c = moddot(c, d);
-				c %= Mod;
-			}
-			d = moddot(d, d);
-			d %= Mod;
-			k >>= 1;
-		}
-		return c;
-	}
-}
+    int h, w;
+    int dat[300][300];
+    static Matrix c, d;
+    void init(int height, int width) {
+        h = height, w = width;
+        for (int i = 0; i < h; i++)for (int j = 0; j < w; j++)
+            dat[i][j] = 0;
+    }
+    auto operator[](int i) { return dat[i]; }
+    void operator+=(Matrix& b) {
+        for (int i = 0; i < h; i++)for (int j = 0; j < w; j++)
+            dat[i][j] += b.dat[i][j];
+    }
+    void operator-=(Matrix& b) {
+        for (int i = 0; i < h; i++)for (int j = 0; j < w; j++)
+            dat[i][j] -= b.dat[i][j];
+    }
+    Matrix operator+(Matrix& b) {
+        c = *this; c += b;
+        return c;
+    }
+    Matrix operator-(Matrix& b) {
+        c = *this; c -= b;
+        return c;
+    }
+    Matrix operator*(Matrix& b) {
+        c.init(h, b.w);
+        for (int i = 0; i < h; i++)for (int j = 0; j < w; j++)for (int k = 0; k < b.w; k++) {
+            c.dat[i][k] += dat[i][j] * b.dat[j][k];
+        }
+        return c;
+    }
+    void operator%=(int& b) {
+        for (int i = 0; i < h; i++)for (int j = 0; j < w; j++)
+            dat[i][j] %= b;
+    }
+    Matrix operator%(int& b) {
+        c = *this; c %= b;
+        return c;
+    }
+    void operator*=(int& b) {
+        for (int i = 0; i < h; i++)for (int j = 0; j < w; j++)
+            dat[i][j] *= b;
+    }
+    Matrix operator*(int& b) {
+        c = *this; c *= b;
+        return c;
+    }
+    Matrix moddot(Matrix& a, Matrix& b, int Mod = mod) {
+        c.init(a.h, b.w);
+        for (int i = 0; i < a.h; i++)for (int j = 0; j < a.w; j++)for (int k = 0; k < b.w; k++) {
+            (c.dat[i][k] += a.dat[i][j] * b.dat[j][k] % Mod);
+            if (c.dat[i][k] >= Mod) c.dat[i][k] -= Mod;
+        }
+        return c;
+    }
+    Matrix mod_pow(int k, int Mod = mod) {
+        Matrix c; c.init(h, w);
+        d = *this;
+        for (int i = 0; i < h; i++) c[i][i] = 1;
+        while (k) {
+            if (k & 1) {
+                c = moddot(c,d);
+            }
+            d = moddot(d, d);
+            k >>= 1;
+        }
+        return c;
+    }
+}; Matrix Matrix::c, Matrix::d;

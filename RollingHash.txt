@@ -1,28 +1,38 @@
-class RollingHash {
-#define int long long
-#define H pair<int, int>
-#define vec vector
-	int b1, b2;
-	int m1, m2;
-	vec<int>h1, h2, p1, p2;
+class RH {
+    static long long b1, b2;
+    static long long m1, m2;
+    vector<long long>h1, h2;
+    static vector<long long>p1, p2;
 public:
-	RollingHash() :b1(1007), b2(1009), m1(1e9 + 7), m2(1e9 + 9) {}
-	void init(const string& s) {
-		int n = s.size();
-		h1.assign(n + 1, 0);
-		h2.assign(n + 1, 0);
-		p1.assign(n + 1, 1);
-		p2.assign(n + 1, 1);
-		for (int i = 0; i < n; i++) {
-			h1[i + 1] = (h1[i] + s[i]) * b1 % m1;
-			h2[i + 1] = (h2[i] + s[i]) * b2 % m2;
-			p1[i + 1] = p1[i] * b1 % m1;
-			p2[i + 1] = p2[i] * b2 % m2;
-		}
-	}
-	H get(int l, int r) {
-		int t1 = ((h1[r] - h1[l] * p1[r - l]) % m1 + m1) % m1;
-		int t2 = ((h2[r] - h2[l] * p2[r - l]) % m2 + m2) % m2;
-		return H{ t1,t2 };
-	}//[l,r)
-};
+    static void init(int size) {
+        p1.assign(size + 1, 1);
+        p2.assign(size + 1, 1);
+        for (int i = 0; i < size; i++) {
+            p1[i + 1] = p1[i] * b1 % m1;
+            p2[i + 1] = p2[i] * b2 % m2;
+        }
+    }
+    RH() { if (p1.empty()) init(100005); }
+    RH(const string& s) {
+        if (p1.empty()) init(100005);
+        h1.assign(s.size() + 1, 0);
+        h2.assign(s.size() + 1, 0);
+        for (int i = 0; i < s.size(); i++) {
+            h1[i + 1] = (h1[i] + s[i]) * b1 % m1;
+            h2[i + 1] = (h2[i] + s[i]) * b2 % m2;
+        }
+    }
+    H get(int l, int r) {
+        int t1 = ((h1[r] - h1[l] * p1[r - l]) % m1 + m1) % m1;
+        int t2 = ((h2[r] - h2[l] * p2[r - l]) % m2 + m2) % m2;
+        return H{ t1,t2 };
+    }//[l,r)
+
+    static H connect(H l, H r, int r_len) {
+        return H((l.fs * p1[r_len] + r.fs % m1) % m1,
+            (l.sc * p2[r_len] + r.sc % m2) % m2);
+    }
+
+    static H ch(string s) {return RH(s).get(0, s.size());}
+    static H ch(char c) { return ch(""s + c); }
+}; long long RH::b1 = 1007, RH::b2 = 1009, RH::m1 = 1e9 + 7, RH::m2 = 1e9 + 9; vector<long long>RH::p1, RH::p2;

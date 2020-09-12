@@ -1,32 +1,66 @@
+template<typename T>
 class BIT {
     int size;
-    int dat[500000];
+    vector<T>dat;
 public:
     BIT() {}
+    BIT(vector<T>v) {
+        init(v.size());
+        for (int i = 1; i <= size; i++) {
+            dat[i] += v[i - 1];
+            if (i + (i & -i) <= size) dat[i + (i & -i)] += dat[i];
+        }
+    }
+    BIT(int n) { init(n); }
     void init(int n) {
         size = n;
-        for (int i = 1; i <= n; i++) dat[i] = 0;
+        dat.assign(size + 1, 0);
     }
-    void add(int i, int x) {
+    void add(int i, ll x) {
         i++;
         while (i <= size) {
             dat[i] += x;
             i += i & -i;
         }
-    }//0-indexed
-    void add(int l,int r, int x) {
+    }
+    void change(int i, ll x) {
+        i++; int t = x - dat[i];
+        while (i <= size) {
+            int k = dat[i];
+            dat[i] += t;
+            t = dat[i] - k;
+            i += i & -i;
+        }
+    }
+    //[l,r)
+    void add(int l, int r, ll x) {
         add(l, x); add(r, -x);
-    }//[l,r)
-    int query(int i) {
+    }
+    //[0,i]
+    T query(int i) {
         i++;
-        int sum = 0;
+        T sum = 0;
         while (i > 0) {
             sum += dat[i];
             i -= i & -i;
         }
         return sum;
-    }//0-indexed
-    int query(int l, int r) {
+    }
+    //[l,r)
+    T query(int l, int r) {
         return query(r - 1) - query(l - 1);
-    }//[l,r)
+    }
+    //[0,x) >= w
+    int lower_bound(T w) {
+        if (w <= 0) return 0;
+        int x = 0, k = 1;
+        while (k * 2 < size) k *= 2;
+        for (; k > 0; k /= 2) {
+            if (x + k <= size && dat[x + k] < w) {
+                w -= dat[x + k];
+                x += k;
+            }
+        }
+        return x;
+    }
 };//size, 0-indexed

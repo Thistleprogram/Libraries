@@ -1,34 +1,34 @@
 class unionfind {
+    int size = 0;
+    int pa[500000];
 public:
-	int size = 0;
-	int pa[500000];
-	void init(int n) {
-		size = n;
-		for (int i = 0; i <= size; i++) pa[i] = -1;
-	}
-	int find(int x) {
-		if (pa[x] < 0) return x;
-		return pa[x] = find(pa[x]);
-	}
-	bool unite(int x, int y) {
-		x = find(x); y = find(y);
-		if (x == y) return false;
-		if (pa[x] > pa[y]) swap(x, y);
-		pa[x] += pa[y];
-		pa[y] = x;
-		return true;
-	}
-	bool same(int x, int y) {
-		return find(x) == find(y);
-	}
-	bool isroot(int x) {
-		return x == find(x);
-	}
-	int sz(int x) {
-		return -pa[find(x)];
-	}
-	H operator[](int x) {
-		x = find(x);
-		return H{ x,-pa[x] };
-	}
+    void init(int n) {
+        size = n;
+        for (int i = 0; i <= size; i++) pa[i] = -1;
+    }
+    int find(int x) {
+        if (pa[x] < 0) return x;
+        return pa[x] = find(pa[x]);
+    }
+    bool unite(int x, int y) {
+        x = find(x); y = find(y);
+        if (x == y) return false;
+        if (pa[x] > pa[y]) swap(x, y);
+        pa[x] += pa[y];
+        pa[y] = x;
+        return true;
+    }
+    bool same(int x, int y) {
+        return find(x) == find(y);
+    }
+    bool isroot(int x) {
+        return x == find(x);
+    }
+    int sz(int x) {
+        return -pa[find(x)];
+    }
+    H operator[](int x) {
+        x = find(x);
+        return H{ x,-pa[x] };
+    }
 };

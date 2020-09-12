@@ -1,29 +1,32 @@
 class HLD {
 #define HLD_SIZ 400010
-#define H pair<int, int>
-#define pb emplace_back
-#define fs first
-#define sc second
-    using F = function<void(int&, int, int)>;
-    using T = function<int(int, int)>;
-    int n, st, zer, zer2, idx;
+    using F = function<void(ll&, ll, int)>;
+    using T = function<ll(ll, ll)>;
+    int n, st, idx; ll zer, zer2;
     bool mde;
     int siz[HLD_SIZ];
     vector<int>e[HLD_SIZ];
-    vector<pair<int, pair<int, int>>>f;
+    vector<pair<int, pair<int, ll>>>f;
     int in[HLD_SIZ], out[HLD_SIZ], rev[HLD_SIZ];
     int head[HLD_SIZ], prt[HLD_SIZ], dept[HLD_SIZ];
     Segtree seg;
     F upd; T qur;
 public:
     //for update, for query, mode(0:vertex, 1:edge)
-    void init(int size, F update, T query, int zero, int zero2, bool mode) {
+    void init(int size, F update, T query, ll zero, ll zero2, bool mode) {
         n = size, zero = zer, zer2 = zero2;
         upd = update, qur = query;
         mde = mode;
-        for (int i = 0; i <= n; i++) siz[i] = 0, prt[i] = -1, head[i] = -1;
+        idx = 0;
+        f.clear();
+        for (int i = 0; i <= n; i++) {
+            siz[i] = 0, prt[i] = -1, head[i] = -1;
+            in[i] = 0, out[i] = 0, rev[i] = 0;
+            dept[i] = 0;
+            e[i].clear();
+        }
     }
-    void add_edge(int u, int v, int r) {
+    void add_edge(int u, int v, ll r) {
         add_edge(u, v);
         f.pb(make_pair(u, make_pair(v, r)));
     }
@@ -45,14 +48,14 @@ public:
         }
         seg.init(idx, upd, qur, zer, zer2);
         if (f.size()) {
-            vector<int>v(idx, zer2);
+            vector<ll>v(idx, zer2);
             for (auto g : f) {
                 v[max(in[g.fs], in[g.sc.fs])] = g.sc.sc;
             }
             seg.build(v);
         }
     }
-    void update(int a, int b, int x) {
+    void update(int a, int b, ll x) {
         while (head[a] != head[b]) {
             if (in[a] > in[b]) swap(a, b);
             seg.update(in[head[b]], in[b] + 1, x);
@@ -61,8 +64,8 @@ public:
         if (in[a] > in[b]) swap(a, b);
         seg.update(in[a] + mde, in[b] + 1, x);
     }
-    int query(int a, int b) {
-        int ret = zer2;
+    ll query(int a, int b) {
+        ll ret = zer2;
         while (head[a] != head[b]) {
             if (in[a] > in[b]) swap(a, b);
             ret = qur(ret, seg.query(in[head[b]], in[b] + 1));
@@ -79,21 +82,57 @@ public:
             b = prt[head[b]];
         }
     }
-    void subupdate(int a, int x) {
+    void subupdate(int a, ll x) {
         seg.update(in[a], out[a], x);
     }
-    int subquery(int a) {
+    ll subquery(int a) {
         return seg.query(in[a], out[a]);
     }
     int par(int x, int t) {
-        while (1) {
+        while (~x) {
             if (in[x] - in[head[x]] >= t)
                 return rev[in[head[x]] + ((in[x] - in[head[x]]) - t)];
             t -= (in[x] - in[head[x]] + 1);
             x = prt[head[x]];
         }
+        return x;
     }
-    int operator[](const int& i) { return dept[i]; }
+    ll operator[](const int& i) { return dept[i]; }
+    ll lower_bound(int a, int b, function<bool(ll)>comp) {
+        vector<H>left, right;
+        bool swapped = 0;
+        while (head[a] != head[b]) {
+            if (in[a] > in[b]) { swap(a, b); swapped = !swapped; }
+            if (swapped) left.push_back(H{ in[head[b]], in[b] + 1 });
+            else right.push_back(H{ in[head[b]],in[b] + 1 });
+            b = prt[head[b]];
+        }
+        //swap=0の時は終点を縮める、
+        if (in[a] > in[b]) { swap(a, b); swapped = !swapped; }
+        //leftはupper_boundで、rightはlower_boundで求める
+        ll tmp = zer2, r;
+        for (auto g : left) {
+            r = seg.upper_bound(g.fs, g.sc, [&](int a) {return comp(qur(tmp, a)); });
+            if (r != g.fs - 1) return rev[r];
+            tmp = qur(tmp, seg.query(g.fs, g.sc));
+        }
+        if (swapped) {
+            r = seg.upper_bound(in[a] + mde, in[b] + 1, [&](int a) {return comp(qur(tmp, a)); });
+            if (r != in[a] + mde - 1) return rev[r];
+            tmp = qur(tmp, seg.query(in[a] + mde, in[b] + 1));
+        }
+        else {
+            r = seg.lower_bound(in[a] + mde, in[b] + 1, [&](int a) {return comp(qur(tmp, a)); });
+            if (r != in[b] + 1) return rev[r];
+            tmp = qur(tmp, seg.query(in[a] + mde, in[b] + 1));
+        }
+        for (auto g : right) {
+            r = seg.lower_bound(g.fs, g.sc, [&](int a) {return comp(qur(tmp, a)); });
+            if (r != g.sc) return rev[r];
+            tmp = qur(tmp, seg.query(g.fs, g.sc));
+        }
+        return -1;
+    }//区間[a,b]で、qurの値がcompになる最初の点を求める
 private:
     void normalize(int v, int p, int d) {
         dept[v] = d;
