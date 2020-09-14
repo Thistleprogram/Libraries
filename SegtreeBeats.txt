@@ -1,0 +1,237 @@
+class SegtreeBeats {
+    using ll = long long;
+
+    int n, rr;
+    vector<ll>mx_v, mn_v, smx_v, smn_v, lz_upd, lz_ad, sigm, len;
+    vector<int>mx_c, mn_c;
+    const ll mx = 1e18, mn = -1e18;
+
+public:
+    SegtreeBeats() {}
+    SegtreeBeats(vector<ll>& v) {
+        init(v);
+    }
+    void init(vector<ll>& v) {
+        n = v.size();
+        rr = 1; while (rr < n) rr *= 2;
+
+        mx_v.assign(2 * rr - 1, mn); mn_v.assign(2 * rr - 1, mx);
+        smx_v.assign(2 * rr - 1, mn); smn_v.assign(2 * rr - 1, mx);
+        lz_upd.assign(2 * rr - 1, mx); lz_ad.assign(2 * rr - 1, 0);
+        len.assign(2 * rr - 1, rr);
+        sigm.assign(2 * rr - 1, 0);
+        mx_c.assign(2 * rr - 1, 1); mn_c.assign(2 * rr - 1, 1);
+
+        for (int i = 0; i < rr - 1; i++) len[i * 2 + 1] = len[i * 2 + 2] = len[i] >> 1;
+
+        for (int i = 0; i < n; i++) {
+            mx_v[i + rr - 1] = mn_v[i + rr - 1] = sigm[i + rr - 1] = v[i];
+        }
+        for (int i = rr - 2; i >= 0; i--) {
+            proc(i);
+        }
+    }
+
+    void chmin(int a, int b,ll x) {
+        chmin(0, a, b, 0, rr,x);
+    }
+    void chmax(int a, int b,ll x) {
+        chmax(0, a, b, 0, rr,x);
+    }
+    void update(int a, int b,ll x) {
+        update(0, a, b, 0, rr, x);
+    }
+    void add(int a, int b, ll x) {
+        add(0, a, b, 0, rr, x);
+    }
+
+
+    ll rangemin(int a, int b) {
+        return rangemin(0, a, b, 0, rr);
+    }
+    ll rangemax(int a, int b) {
+        return rangemax(0, a, b, 0, rr);
+    }
+    ll sum(int a, int b) {
+        return sum(0, a, b, 0, rr);
+    }
+
+private:
+    ll rangemin(int i, int a, int b, int l, int r) {
+        if (r <= a || b <= l) return mx;
+        if (a <= l && r <= b) return mn_v[i];
+        eval(i);
+        ll lv = rangemin(i * 2 + 1, a, b, l, (l + r) / 2);
+        ll rv = rangemin(i * 2 + 2, a, b, (l + r) / 2,r);
+        return min(lv, rv);
+    }
+    ll rangemax(int i, int a, int b, int l, int r) {
+        if (r <= a || b <= l) return mn;
+        if (a <= l && r <= b) return mx_v[i];
+        eval(i);
+        ll lv = rangemax(i * 2 + 1, a, b, l, (l + r) / 2);
+        ll rv = rangemax(i * 2 + 2, a, b, (l + r) / 2, r);
+        return max(lv, rv);
+    }
+    ll sum(int i, int a, int b, int l, int r) {
+        if (r <= a || b <= l) return 0;
+        if (a <= l && r <= b) return sigm[i];
+        eval(i);
+        ll lv = sum(i * 2 + 1, a, b, l, (l + r) / 2);
+        ll rv = sum(i * 2 + 2, a, b, (l + r) / 2, r);
+        return lv + rv;
+    }
+
+    void chmin(int i, int a, int b, int l, int r, ll x) {
+        if (b <= l || r <= a || x >= mx_v[i]) return;
+
+        if (a <= l && r <= b && smx_v[i] < x) {
+            in_chmin(i, x);
+            return;
+        }//ここの値を直す。だけ。
+
+        eval(i);//子供の値も正しくする
+        chmin(i * 2 + 1, a, b, l, (l + r) / 2, x);
+        chmin(i * 2 + 2, a, b, (l + r) / 2, r, x);
+        proc(i);
+    }
+    void chmax(int i, int a, int b, int l, int r, ll x) {
+        if (b <= l || r <= a || x <= mn_v[i]) return;
+
+        if (a <= l && r <= b && smn_v[i] > x) {
+            in_chmax(i, x);
+            return;
+        }//ここの値を直す。だけ。
+
+        eval(i);//子供の値も正しくする
+        chmax(i * 2 + 1, a, b, l, (l + r) / 2, x);
+        chmax(i * 2 + 2, a, b, (l + r) / 2, r, x);
+        proc(i);
+    }
+    void add(int i, int a, int b, int l, int r, ll x) {
+        if (b <= l || r <= a) return;
+
+        if (a <= l && r <= b) {
+            in_add(i, x);
+            return;
+        }//ここの値を直す。だけ。
+
+        eval(i);//子供の値も正しくする
+        add(i * 2 + 1, a, b, l, (l + r) / 2, x);
+        add(i * 2 + 2, a, b, (l + r) / 2, r, x);
+        proc(i);
+    }
+    void update(int i, int a, int b, int l, int r, ll x) {
+        if (b <= l || r <= a) return;
+
+        if (a <= l && r <= b) {
+            in_update(i, x);
+            return;
+        }//ここの値を直す。だけ。
+
+        eval(i);//子供の値も正しくする
+        update(i * 2 + 1, a, b, l, (l + r) / 2, x);
+        update(i * 2 + 2, a, b, (l + r) / 2, r, x);
+        proc(i);
+    }
+
+    void eval(int i) {
+        //chmin, update, add
+        //update->add 組み込む
+        //add->chmin やるだけ
+        //chmin->add
+
+        if (lz_upd[i] != mx) {
+            in_update(i * 2 + 1, lz_upd[i]);
+            in_update(i * 2 + 2, lz_upd[i]);
+            lz_upd[i] = mx;
+            return;
+        }//updateされていた場合は、死ぬ
+
+        if (lz_ad[i]) {
+            in_add(i * 2 + 1, lz_ad[i]);
+            in_add(i * 2 + 2, lz_ad[i]);
+            lz_ad[i] = 0;
+        }
+
+        if (mx_v[i] < mx_v[i * 2 + 1]) in_chmin(i * 2 + 1, mx_v[i]);
+        if (mx_v[i] < mx_v[i * 2 + 2]) in_chmin(i * 2 + 2, mx_v[i]);
+
+        if (mn_v[i] > mn_v[i * 2 + 1]) in_chmax(i * 2 + 1, mn_v[i]);
+        if (mn_v[i] > mn_v[i * 2 + 2]) in_chmax(i * 2 + 2, mn_v[i]);
+    }//子供に情報を伝搬する
+
+    void proc(int i) {
+        sigm[i] = sigm[i * 2 + 1] + sigm[i * 2 + 2];
+
+
+        mx_v[i] = max(mx_v[i * 2 + 1], mx_v[i * 2 + 2]);
+        if (mx_v[i * 2 + 1] > mx_v[i * 2 + 2]) {
+            mx_c[i] = mx_c[i * 2 + 1];
+            smx_v[i] = max(smx_v[i * 2 + 1], mx_v[i * 2 + 2]);
+        }
+        else if (mx_v[i * 2 + 1] < mx_v[i * 2 + 2]) {
+            mx_c[i] = mx_c[i * 2 + 2];
+            smx_v[i] = max(smx_v[i * 2 + 2], mx_v[i * 2 + 1]);
+        }
+        else {
+            mx_c[i] = mx_c[i * 2 + 1] + mx_c[i * 2 + 2];
+            smx_v[i] = max(smx_v[i * 2 + 1], smx_v[i * 2 + 2]);
+        }
+
+
+        mn_v[i] = min(mn_v[i * 2 + 1], mn_v[i * 2 + 2]);
+        if (mn_v[i * 2 + 1] < mn_v[i * 2 + 2]) {
+            mn_c[i] = mn_c[i * 2 + 1];
+            smn_v[i] = min(smn_v[i * 2 + 1], mn_v[i * 2 + 2]);
+        }
+        else if (mn_v[i * 2 + 1] > mn_v[i * 2 + 2]) {
+            mn_c[i] = mn_c[i * 2 + 2];
+            smn_v[i] = min(smn_v[i * 2 + 2], mn_v[i * 2 + 1]);
+        }
+        else {
+            mn_c[i] = mn_c[i * 2 + 1] + mn_c[i * 2 + 2];
+            smn_v[i] = min(smn_v[i * 2 + 1], smn_v[i * 2 + 2]);
+        }
+    }//子供から値を伝搬する
+
+    void in_update(int i, ll x) {
+        mx_v[i] = mn_v[i] = x;
+        smx_v[i] = mn; smn_v[i] = mx;
+        mx_c[i] = mn_c[i] = len[i];
+        sigm[i] = len[i] * x;
+        lz_upd[i] = x, lz_ad[i] = 0;
+    }
+    void in_add(int i, ll x) {
+        mx_v[i] += x; mn_v[i] += x;
+        if (smn_v[i] != mx) smn_v[i] += x;
+        if (smx_v[i] != mn) smx_v[i] += x;
+        sigm[i] += x * len[i];
+
+        if (lz_upd[i] != mx)
+            lz_upd[i] += x;
+        lz_ad[i] += x;
+    }
+    void in_chmin(int i, ll x) {
+        sigm[i] += (x - mx_v[i]) * mx_c[i];
+
+        if (mx_v[i] == mn_v[i])
+            mx_v[i] = mn_v[i] = x;
+        else if (mx_v[i] == smn_v[i])
+            mx_v[i] = smn_v[i] = x;
+        else mx_v[i] = x;
+
+        if (lz_upd[i] != mx && lz_upd[i] > x) lz_upd[i] = x;
+    }
+    void in_chmax(int i, ll x) {
+        sigm[i] += (x - mn_v[i]) * mn_c[i];
+
+        if (mn_v[i] == mx_v[i])
+            mx_v[i] = mn_v[i] = x;
+        else if (mn_v[i] == smx_v[i])
+            mn_v[i] = smx_v[i] = x;
+        else mn_v[i] = x;
+
+        if (lz_upd[i] != mx && lz_upd[i] < x) lz_upd[i] = x;
+    }
+};
