@@ -1,0 +1,25 @@
+class SlideMaximam {
+    deque<H>dat;//最初の値がどうか？で見ていく
+    function<bool(H, H)> ope;//最大値とかを表現する 前>後？
+    function<bool(H, int)> valid;//この値は適切か？
+public:
+    //maximam-> "<", !isvalid(value, now)->remove
+    void init(function<bool(H, H)>operate, function<bool(H, int)>isvalid) {
+        ope = operate, valid = isvalid;
+    }
+    //now, value, flag
+    void push(H t) {
+        remove(t.sc);
+        while (!dat.empty() && ope(dat.back(), t)) 
+            dat.pop_back();
+        dat.push_back(t);
+    }
+    H top(int now) {
+        remove(now);
+        return dat.front();
+    }
+    void remove(int now) {
+        while (!dat.empty() && !valid(dat.front(), now)) dat.pop_front();
+    }
+    bool empty(int now) { remove(now); return dat.empty(); }
+};

@@ -1,0 +1,59 @@
+class LCA {
+    using H = pair<int, ll>;
+    int n;
+    vector<H>e[300000];
+    vector<int>ord, depth, id;
+    vector<ll>dit;
+    sptable<int> st;
+    void dfs(int x, int p, int d, ll dis) {
+        id[x] = (int)ord.size();
+        ord.push_back(x);
+        depth[x] = d;
+        dit[x] = dis;
+        for (H v : e[x]) {
+            if (v.first != p) {
+                dfs(v.first, x, d + 1, dis + v.second);
+                ord.push_back(x);
+            }
+        }
+    }
+public:
+    void init(int size) {
+        n = size + 1;
+        for (int i = 0; i < n; i++) e[i].clear();
+        ord.clear(); depth.clear(); id.clear(); dit.clear();
+        depth.resize(n); id.assign(n, -1);
+    }
+    void add_edge(int u, int v) {
+        add_edge(u, v, 1);
+    }
+    void add_edge(int u, int v, ll r) {
+        e[u].push_back(H{ v,r });
+        e[v].push_back(H{ u,r });
+    }
+    void build(int root = 0) {
+        dit.resize(n);
+        depth.resize(n);
+        id.resize(n);
+        ord.reserve(2 * n - 1);
+        dfs(root, -1, 0, 0);
+        for (int i = 0; i < n; i++) {
+            if (id[i] < 0) dfs(i, -1, 0, 0);
+        }
+        vector<int>stvec((int)ord.size());
+        for (int i = 0; i < (int)ord.size(); i++) {
+            stvec[i] = depth[ord[i]];
+        }
+        st = sptable<int>(stvec, [](int a, int b) {return min(a, b); });
+    }
+    int get(int u, int v) {
+        return ord[st.query(min(id[u], id[v]), max(id[u], id[v]) + 1)];
+    }
+    ll dist(int u, int v) {
+        int l = get(u, v);
+        return dit[u] + dit[v] - 2 * dit[l];
+    }
+    int operator[](int x) {
+        return depth[x];
+    }
+};
